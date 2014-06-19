@@ -1,17 +1,27 @@
 package cse340;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Vector; 
 
 public class Parser { 
 	 Vector<Token> token;
 	 int current = 0;
+	 Writer out;
 	 
-	 public void parse (Vector<Token> tokens) { 
-		 this.token = tokens; 
+	 public Parser (Vector<Token> tokens, OutputStreamWriter out_args) throws IOException { 
+		 this.token = tokens;
+		 this.out = out_args;
 		 program(); 
 	 } 
 	 // implement here your recursive-descendent parser
-	 private boolean program() {
+	 private boolean program() throws FileNotFoundException, IOException{
+		 out.write("Line " + token.elementAt(current).getLine() + ":\t" + "expected");
+		 out.close();
+		 
 		 var_section();
 		 body();
 		 return true;
@@ -25,7 +35,7 @@ public class Parser {
 				 current++;
 				 var_section();
 			 } else {
-				 //otherwise return false: error no semicolon?
+				 //otherwise return false: error no semicolon?				 
 				 return false;
 			 }
 		 }
