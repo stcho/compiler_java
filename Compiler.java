@@ -17,7 +17,7 @@ public class Compiler {
   
   private static String[] split(String line) {
     // 1. SPLIT THE LINE IN STRINGS (WORDS);
-    	String temp = ""; 								//var to store each line from input temporarily 
+    	String temp = ""; 								//variable to store each line from input temporarily 
     	char[] lineCharArray = line.toCharArray(); 		//transforms line into array of chars  
     	List<String> array = new ArrayList<String>();	//ArrayList to store the split strings temporarily
     	
@@ -39,11 +39,10 @@ public class Compiler {
     				array.add( String.valueOf(lineCharArray[i])); 
     			}
     			if (isQuotes(lineCharArray[i])) {    					
-    				temp += lineCharArray[i]; //Adds the opening quote 
+    				temp += lineCharArray[i]; 			//Adds the opening quote 
     				i++;
     				while(!isQuotes(lineCharArray[i]) && i<(line.length()-1)) {
     					if(lineCharArray[i] == '\\' && lineCharArray[i+1] == '\''){
-//    						if ()
     						temp += "\\\'";
     						i+=2;
     					}
@@ -56,7 +55,7 @@ public class Compiler {
     						i++;
     					}
     				}
-    				temp += lineCharArray[i]; //Adds the closing quote 
+    				temp += lineCharArray[i]; 			//Adds the closing quote 
     				array.add(temp);
     		        temp = "";
     			}
@@ -74,37 +73,38 @@ public class Compiler {
     return strings;
   }
 
-  private static boolean isQuotes(char q) {
-	  char [] quotes = {'\"', '\''};
-	     for (int x=0; x<quotes.length; x++) {
-	      if (q == quotes[x]) return true;      
-	     }
-	     return false;
-  }
-  		private static boolean isDelimiter(char c) {
-	     char [] delimiters = {':', ';', ' ', '}','{', '[',']','(',')',','};
-	     for (int x=0; x<delimiters.length; x++) {
-	      if (c == delimiters[x]) return true;      
-	     }
-	     return false;
-	  }
+    private static boolean isQuotes(char q) {
+    	char [] quotes = {'\"', '\''};
+    	for (int x=0; x<quotes.length; x++) {
+    		if (q == quotes[x]) return true;      
+    	}
+    	return false;
+    }
+  	private static boolean isDelimiter(char c) {
+  		char [] delimiters = {':', ';', ' ', '}','{', '[',']','(',')',','};
+  		for (int x=0; x<delimiters.length; x++) {
+  			if (c == delimiters[x]) return true;      
+	    }
+	    return false;
+	}
 	  
-	  private static boolean isOperator(char o) {
-	     char [] operators = {'+', '-', '*','/', '%','<','>','=','!','&','|'};
-	     for (int x=0; x<operators.length; x++) {
-	      if (o == operators[x]) return true;      
-	     }
-	     return false;
-	  }
+	private static boolean isOperator(char o) {
+		char [] operators = {'+', '-', '*','/', '%','<','>','=','!','&','|'};
+		for (int x=0; x<operators.length; x++) {
+			if (o == operators[x]) return true;      
+		}
+		return false;
+	}
 
   public static void main(String[] args) throws FileNotFoundException, IOException {
 
-    BufferedReader br = new BufferedReader(new FileReader(args[0]));
-//    Writer out = new OutputStreamWriter(new FileOutputStream(args[1]));
+    BufferedReader br = new BufferedReader(new FileReader(args[0]));	//Read in Input file
+    Writer out = new OutputStreamWriter(new FileOutputStream(args[1])); //Write to Output file 
     int totalLexicalErrors = 0;
+    int lineNumber = 1;
+    int lineComparer = 1;
     try {            
       String line = br.readLine();
-      int lineNumber = 1;
       while (line != null) { 
         String[] strings = split (line); //the split method
         for (String string : strings) {
@@ -113,20 +113,17 @@ public class Compiler {
           if (token.equals("ERROR")) {
             totalLexicalErrors++;
           }
-          // PRINT THE VECTOR<TOKENS> INTO THE OUTPUT FILE (use the defined stream out)
-          //out.write(token + ", " + string + ", " + lineNumber + "\n\n");
-          // PRINT THE ERRORS INTO THE OUTPUT FILE
-//          Parser p = new Parser(tokens, new OutputStreamWriter(new FileOutputStream(args[1])));
+          // PRINT THE VECTOR<TOKENS> INTO THE OUTPUT FILE
+          // out.write(token + ", " + string + ", " + lineNumber + "\n\n");
         }
         line = br.readLine();  
         lineNumber++;
       }        
     } finally {
       br.close();
-//      out.close();
+      Parser p = new Parser(tokens, out);
+      out.close();
     }
-    Parser p = new Parser(tokens, new OutputStreamWriter(new FileOutputStream(args[1])));
-//    Parser.parse(tokens); 
   }
   
 }
