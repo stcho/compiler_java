@@ -1,9 +1,7 @@
 package cse340;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Vector; 
 
@@ -19,24 +17,57 @@ public class Parser {
 		 program();
 	 } 
 	 
-	 private void newLine() {
+	 private void newLine() throws IOException{
 		 int lineWithError = token.get(current).getLine();
 		 while (lineWithError == token.get(current).getLine()) {
-			 current++;
+			 checkEndOfProgram();
 		 }
 	 }
 	 private void untilClosed(){
 		 int lineWithError = token.get(current).getLine();
 		 while (lineWithError == token.get(current).getLine() && !token.get(current).getWord().equals("}")) {
-			 current++;
+			 if (current != (token.size()-1)) {
+				 current++; 
+			 } else {
+				 return;
+			 }
 		 }
 	 }
 	 private void untilOpen(){
 		 int lineWithError = token.get(current).getLine();
 		 while (lineWithError == token.get(current).getLine() && !token.get(current).getWord().equals("{")) {
-			 current++;
+			 if (current != (token.size()-1)) {
+				 current++; 
+			 } else {
+				 return;
+			 }
 		 }
 	 }
+	 private void checkEndOfProgram() throws IOException{
+		 if (current != (token.size()-1)) {
+			 current++; 
+		 } else {
+			 out.write("Line " + (token.elementAt(current).getLine()+1) + ": " + "expected delimiter }" + "\n\n");
+			 out.close(); System.exit(0); 
+		 }
+	 }
+	 private void checkEndOfProgramOpen() throws IOException{
+		 if (current != (token.size()-1)) {
+			 current++; 
+		 } else {
+			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter {" + "\n\n");
+			 out.close(); System.exit(0); 
+		 }
+	 }
+	 private void checkEndOfProgramOther() throws IOException{
+		 if (current != (token.size()-1)) {
+			 current++; 
+		 } else {
+			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter :" + "\n\n");
+			 out.close(); System.exit(0); 
+		 }
+	 }
+	 
 	 
 	 private boolean program() throws FileNotFoundException, IOException{		
 		 var_section();
@@ -50,14 +81,14 @@ public class Parser {
 			 id_list();
 			 if (token.get(current).getWord().equals(";")){
 				 //if the program ends correctly with a semicolon call var_section again until "{" token for body 
-				 current++;
+				 checkEndOfProgram(); 
 				 var_section();
 			 } else {
 				 if (token.get(current).getWord().equals("{")) {
 					 return true;
 				 }
 				 //otherwise return false: error no semicolon
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 newLine();
 			 }
 		 }
@@ -66,22 +97,22 @@ public class Parser {
 	 
 	 private boolean body() throws IOException {
 		 if (token.get(current).getWord().equals("{")) {			 
-			 current++;
+			 checkEndOfProgram(); 
 			 if (token.get(current).getWord().equals("}")) {
-				 current++;
+				 checkEndOfProgram(); 
 				 return true;
 			 } else {
 				 stmt_list();
 				 if (token.get(current).getWord().equals("}")) {
-					 current++;
+					 checkEndOfProgram(); 
 					 return true;
 				 } else {
-					 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter }" + "\n");
+					 checkEndOfProgram(); 
 					 return false;
 				 }
 			 } 
 		 } else {
-			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter {" + "\n");
+			 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter {" + "\n\n");
 			 untilOpen();
 			 return false; //error: no opening bracket
 		 }
@@ -89,25 +120,25 @@ public class Parser {
 	 
 	 private boolean id_list() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
-			 current++;
+			 checkEndOfProgram(); 
 			 if (token.get(current).getWord().equals(",")) {
-				 current++;
+				 checkEndOfProgram(); 
 				 id_list();
 				 return true;
 			 } else {
-				 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n");
+				 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 untilOpen();
 				 return true; // we have an id but no ',' after it
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n");
+			 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n\n");
 			 untilOpen();
 			 return false; //error: no IDENTIFIER
 		 }
 	 }
 	 
 	 private boolean stmt_list() throws IOException {
-		 while (!token.get(current).getWord().equals("}") && current != token.size()-1) {
+		 while (!token.get(current).getWord().equals("}") && current != (token.size()-1)) {
 			 stmt();
 		 }
 		 return true;
@@ -146,7 +177,7 @@ public class Parser {
 			 assign_stmt();
 			 return true;
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n\n");
 			 newLine();
 			 return false;
 		 }
@@ -154,19 +185,28 @@ public class Parser {
 	 
 	 private boolean assign_stmt() throws IOException {
 		 if (token.get(current).getWord().equals("=")) {
-			 current++;
+			 if (current != (token.size()-1)) {
+				 current++; 
+			 } else {
+				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected identifier" + "\n\n");
+				 out.close(); System.exit(0); 
+			 }
+			 if (current == (token.size()-1)) {
+				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter ;" + "\n\n");
+				 out.close(); System.exit(0); 
+			 }
 			 if (((token.get(current).getToken().equals("IDENTIFIER") || token.get(current).getToken().equals("INTEGER"))) && (token.get(current+1).getWord().equals("+") || token.get(current+1).getWord().equals("-") || token.get(current+1).getWord().equals("*") || token.get(current+1).getWord().equals("/"))) {
 				 if (expr() == false) {
 					 return false;
 				 } else {
 					 if (token.get(current).getWord().equals(";")) {
-						 current++;
+						 checkEndOfProgram();
 						 return true;
 					 } else {
 						 if (token.elementAt(current-1).getLine() == token.elementAt(current-2).getLine()) {
-							 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n");
+							 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
 						 } else {
-							 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n");
+							 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n\n");
 						 }
 						 newLine();
 						 return false;
@@ -175,16 +215,16 @@ public class Parser {
 			 } else {
 				 if (token.get(current+1).getWord().equals(";")) {
 					 primary();
-					 current++;
+					 checkEndOfProgram(); 
 					 return true;
 				 } else {
-					 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n");
+					 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n\n");
 					 newLine();
 					 return false;
 				 }
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected operator =" + "\n");
+			 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected operator =" + "\n\n");
 			 newLine();
 			 return false;
 		 }
@@ -197,12 +237,12 @@ public class Parser {
 			 primary();
 		 	 return true;
 	 	 } else {
-	 		System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n");
+	 		out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n\n");
 	 		 return false;
 	 	 }
 	 }
 	 
-	 private boolean primary() {
+	 private boolean primary() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
 			 current++;
 			 return true;
@@ -210,7 +250,7 @@ public class Parser {
 			 current++;
 			 return true;
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected identifier or value" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier or value" + "\n\n");
 			 return false;
 		 }
 	 }
@@ -229,7 +269,7 @@ public class Parser {
 			 current++;
 			 return true;
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected operator" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected operator" + "\n\n");
 			 return false;
 		 }
 	 }
@@ -238,23 +278,23 @@ public class Parser {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
 			 current++;
 			 if (token.get(current).getWord().equals(";")) {
-				 current++;
+				 checkEndOfProgram();
 				 return true; //successfully iterated through print_stmt
 			 } else {
 				 if (token.elementAt(current-1).getLine() == token.elementAt(current-2).getLine()) {
-					 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n");
+					 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 } else {
-					 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n");
+					 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 }
 				 untilClosed();
 				 return false; //error: no semicolon
 			 }
 		 } else {
 			 if (token.get(current).getWord().equals("}")) {
-				 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n");
+				 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n\n");
 				 return false;
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n\n");
 				 untilClosed();
 			 	return false; //error: no ID
 			 }	
@@ -312,12 +352,12 @@ public class Parser {
 				 current++;
 				 return true;
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected operator =" + "\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected operator =" + "\n\n");
 				 untilOpen();
 				 return false; 
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected operator" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected operator" + "\n\n");
 			 untilOpen();
 			 return false;
 		 }
@@ -330,19 +370,20 @@ public class Parser {
 				 current++;
 				 case_list();
 				 if (token.get(current).getWord().equals("}")) {
-					 current++;
+					 checkEndOfProgram();
 					 return true; 
 				 } else {
+					 out.write("WORD: " + token.get(current).getWord());
 					 case_list();
 					 return true;
 				 }
 			 } else {
-				 System.out.println("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter {" + "\n");
+				 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter {" + "\n\n");
 				 untilOpen();
 				 return false;
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n\n");
 			 untilOpen();
 			 return false; //error: no ID
 		 }
@@ -351,14 +392,19 @@ public class Parser {
 	 private boolean case_list() throws IOException {
 		 while (!token.get(current).getWord().equals("}")) {
 			 if (token.get(current).getWord().equals("CASE")) {
-				 current++;
+				 if (current != (token.size()-1)) {
+					 current++;
+				 } else {
+					 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected value" + "\n\n");
+					 out.close(); System.exit(0);  //end of initial body
+				 }
 				 CASE();
 				 if (token.get(current).getWord().equals("{")) {
 					 body();
 					 return false;
 				 } else {
 					 if (token.get(current).getWord().equals("DEFAULT")) {
-						 current++;
+						 checkEndOfProgramOther();
 						 default_case();
 						 return true;
 					 } else {
@@ -366,7 +412,7 @@ public class Parser {
 					 }
 				 }
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "CASE expected" + "\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "CASE expected" + "\n\n");
 				 return false; //error: no CASE 
 			 }
 		 }
@@ -375,18 +421,18 @@ public class Parser {
 	 
 	 private boolean CASE() throws IOException {
 		if (token.get(current).getToken().equals("INTEGER")) {
-			current++;
+			checkEndOfProgramOther();
 			if (token.get(current).getWord().equals(":")) {
-				current++;
+				checkEndOfProgramOpen();
 				body();
 				return true;
 			} else {
-				System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter :" + "\n");
+				out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter :" + "\n\n");
 				untilOpen();
 				return false; //error: expecting ":"
 			}
 		} else {
-			System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected type integer" + "\n");
+			out.write("Line " + token.elementAt(current).getLine() + ": " + "expected type integer" + "\n\n");
 			untilOpen();
 			return false;
 		}
@@ -394,17 +440,22 @@ public class Parser {
 	 
 	 private boolean default_case() throws IOException {
 	 	 if (token.get(current).getWord().equals(":")) {
-				current++;
+				checkEndOfProgramOpen();
 				body();
 				return true;
 		 } else {
-				System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter :" + "\n");
+				out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter :" + "\n\n");
 				untilOpen();
 				if (token.get(current).getWord().equals("{")) {
 					body();
 					return true;
 				}
-				return false; //error: expecting ":"
+				if (current != (token.size()-1)) {
+					return false; //error: expecting ":" 
+				} else {
+					 out.close(); System.exit(0);  //end of initial body
+				}
+				return false;
 		 }
 	 }
 	 
@@ -417,7 +468,7 @@ public class Parser {
 			 return true;
 		 } else {
 			 //error: type error
-			 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "expected type" + "\n");
+			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected type" + "\n\n");
 			 newLine();
 			 return false;
 		 }

@@ -100,7 +100,7 @@ public class Compiler {
   public static void main(String[] args) throws FileNotFoundException, IOException {
 
     BufferedReader br = new BufferedReader(new FileReader(args[0]));	//Read in Input file
-    Writer out = new OutputStreamWriter(new FileOutputStream(args[1])); //Write to Output file 
+    Writer out = new OutputStreamWriter(new FileOutputStream(args[1])); //Write to Output file
     int totalLexicalErrors = 0;
     int lineNumber = 1;
     int lineComparer = 1;
@@ -115,7 +115,7 @@ public class Compiler {
             totalLexicalErrors++;
           }
           // PRINT THE VECTOR<TOKENS> INTO THE OUTPUT FILE
-          // out.write(token + ", " + string + ", " + lineNumber + "\n\n");
+          //out.write(token + ", " + string + ", " + lineNumber + "\n\n");
         }
         line = br.readLine();  
         lineNumber++;

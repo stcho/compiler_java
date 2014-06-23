@@ -30,5 +30,4 @@ integer j, i, minusfour  k ;
   j = j+1;
   
   print i;
-  print j;
-  :
+  print j; 
