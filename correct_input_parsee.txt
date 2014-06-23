@@ -1,33 +1,34 @@
-integer j, i, minusfour  k ;
+integer j, i, minusfour, k ;
 {
-  i = 4  
-  j = 3; 
-  minusfour  0-4;
-  WHILE i  0 h {
+  i = 4;
+  j = 3;
+  minusfour = 0-4;
+  WHILE i > 0 {
     j = 3; 
     WHILE j > 0 {
       k = i*j;
-      print ;
+      print k;
       j = j-1;
     }
     i = i-1;
   }
   WHILE i > minusfour {
-    print i hello;
+    print i;
     i = i - 1;
   }
-  this is working :-)
+  
   SWITCH i {
     CASE 1: {
       print i;
     }
-    DEFAULT value : {
+    DEFAULT: {
       print o;
     }
   }
-
+  
   i = i+1;
   j = j+1;
   
   print i;
   print j;
+}

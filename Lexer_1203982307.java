@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 
 public class Lexer_1203982307 {
  //Delete for
-  private final static String[] keywords = {"if", "else", "while", "switch", "case", "return", "int", "float", "void", "char", "string", "boolean", "true", "false", "print"};
+  private final static String[] keywords = {"if", "else", "while", "switch", "case", "return", "int", "float", "void", "char", "string", "boolean", "true", "false", "print", "WHILE", "IF", "SWITCH", "CASE", "DEFAULT"};
  
   public static String lexer(String string) {
     // 4. IMPLEMENT THE LEXICAL RULES HERE

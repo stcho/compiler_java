@@ -15,28 +15,27 @@ public class Parser {
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
 		 this.token = tokens;
 		 this.out = out_args;
-		 //Here I need to check what line I am at and keep going if and only if it is a new line.
-		 do {
-			 program();
-//			 System.out.println("FOOP WORD: " + token.get(current).getWord());
-//			 System.out.println("FOOP LINE: " + token.get(current).getLine());
-//			 System.out.println("FOOP LINE: " + token.get(current).getToken());
-//			 int lineWithError = token.get(current).getLine();
-//			 System.out.println("Hello my name is lineWithNumber and I am: " + lineWithError);
-//			 System.out.println("Whoa I am a " + token.get(current).getLine());
-//			 while (lineWithError == token.get(current).getLine()) {
-//				 current++;
-//			 }
-//			 System.out.println("Hello my name is lineWithNumber and I am: " + lineWithError);
-//			 System.out.println("Whoa I am a " + token.get(current).getLine());
-		 } while (token.lastElement().getLine() != token.get(current).getLine());
-		 
+		 program();
+		 System.out.println("Hello my name is lineWithNumber and I am: " + token.lastElement().getLine());
+		 System.out.println("Whoa I just won I am a " + token.get(current).getLine());
 	 } 
 	 // recursive-descendant parser
 	 
 	 private void newLine() {
 		 int lineWithError = token.get(current).getLine();
 		 while (lineWithError == token.get(current).getLine()) {
+			 current++;
+		 }
+	 }
+	 private void untilClosed(){
+		 int lineWithError = token.get(current).getLine();
+		 while (lineWithError == token.get(current).getLine() && !token.get(current).getWord().equals("}")) {
+			 current++;
+		 }
+	 }
+	 private void untilOpen(){
+		 int lineWithError = token.get(current).getLine();
+		 while (lineWithError == token.get(current).getLine() && !token.get(current).getWord().equals("{")) {
 			 current++;
 		 }
 	 }
@@ -49,6 +48,7 @@ public class Parser {
 	 
 	 private boolean var_section() throws IOException {
 		 while(!token.get(current).getWord().equals("{")) {
+			 //we might have to check if type() returns true and move onto if_list() only and if so
 			 type();
 			 id_list();
 			 if (token.get(current).getWord().equals(";")){
@@ -59,46 +59,39 @@ public class Parser {
 				 //otherwise return false: error no semicolon
 				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
 				 newLine();
-//				 System.out.println(token.get(current).getWord());
-//				 return false;
 			 }
 		 }
 		 return true; //var_section recursion is done. Move on to body
 	 }
 	 
 	 private boolean body() throws IOException {
+		 System.out.println("IM IN THE BODY!");
 		 if (token.get(current).getWord().equals("{")) {			 
 			 current++;
-			 stmt_list();
 			 if (token.get(current).getWord().equals("}")) {
-				 System.out.println("YOOP WORD: " + token.get(current).getWord());
-				 System.out.println("YOOP LINE: " + token.get(current).getLine());
-				 System.out.println("YOOP LINE: " + token.get(current).getToken());
-				 newLine();
+//				 current++;
 				 return true;
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter }" + "\n");
-				 return false;
-			 }
-		 } else if (token.get(current).getWord().equals("}")) {
-			 current++;
-			 System.out.println("YoYoMa");
-			 return false; 
+				 stmt_list();
+				 
+				 if (token.get(current).getWord().equals("}")) {
+					 current++;
+					 System.out.println("Last WORD: " + token.get(current).getWord());
+					 System.out.println("Last LINE: " + token.get(current).getLine());
+					 System.out.println("Last LINE: " + token.get(current).getToken());
+					 return true;
+				 } else {
+					 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter }" + "\n");
+					 return false;
+				 }
+			 } 
 		 } else {
 			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter {" + "\n");
-			 return false; //error: no brackets
+			 untilOpen();
+			 return false; //error: no opening bracket
 		 }
-//		 if (token.get(current).getWord().equals("{")) {
-//			 while (!token.get(current).getWord().equals("}")) {
-//				 current++;
-//				 stmt_list();
-//			 }
-//			 return true;
-//		 } else {
-//			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter {" + "\n");
-//			 return false; //error: no brackets
-//		 }
 	 }
+	 
 	 private boolean id_list() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
 			 current++;
@@ -114,12 +107,14 @@ public class Parser {
 			 return false; //error: no IDENTIFIER
 		 }
 	 }
+	 
 	 private boolean stmt_list() throws IOException {
-		 do {
+		 while (!token.get(current).getWord().equals("}")) {
 			 stmt();
-		 } while (token.get(current).getToken().equals("IDENTIFIER") || token.get(current).getWord().equals("print") || token.get(current).getWord().equals("WHILE") || token.get(current).getWord().equals("IF") || token.get(current).getWord().equals("SWITCH")); 
+		 }
 		 return true;
 	 }
+	 
 	 private boolean stmt() throws IOException {
 		 if (token.get(current).getWord().equals("print")) {
 			 current++;
@@ -138,53 +133,62 @@ public class Parser {
 			 switch_stmt();
 			 return true;
 		 } else if (token.get(current).getToken().equals("IDENTIFIER")) {
-			 current++;			 
+			 current++;
 			 assign_stmt();
 			 return true;
 		 } else {
-			 current++;
 			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected identifier 2" + "\n");
+			 newLine();
 			 return false;
 		 }
 	 }
 	 private boolean assign_stmt() throws IOException {
-			 if (token.get(current).getWord().equals("=")) {
-				 current++;
-				 if (((token.get(current).getToken().equals("IDENTIFIER") || token.get(current).getToken().equals("INTEGER"))) && token.get(current+1).getToken().equals("OPERATOR")) {
-					 if (token.get(current+3).getWord().equals(";")) {
-						 expr();
-						 current++;
-						 System.out.println("WOOP WORD: " + token.get(current).getWord());
-						 System.out.println("WOOP LINE: " + token.get(current).getLine());
-						 System.out.println("WOOP LINE: " + token.get(current).getToken());
-						 return true;
-					 } else {
-						 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
-						 newLine();
-						 return false;
-					 }
+		 if (token.get(current).getWord().equals("=")) {
+			 current++;
+			 if (((token.get(current).getToken().equals("IDENTIFIER") || token.get(current).getToken().equals("INTEGER"))) && (token.get(current+1).getWord().equals("+") || token.get(current+1).getWord().equals("-") || token.get(current+1).getWord().equals("*") || token.get(current+1).getWord().equals("/"))) {
+				 if (expr() == false) {
+					 return false;
 				 } else {
-					 if (token.get(current+1).getWord().equals(";")) {
-						 primary();
+					 if (token.get(current).getWord().equals(";")) {
 						 current++;
 						 return true;
 					 } else {
-						 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
+						 if (token.elementAt(current-1).getLine() == token.elementAt(current-2).getLine()) {
+							 System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected delimiter ;" + "\n");
+						 } else {
+							 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
+						 }
 						 newLine();
 						 return false;
-					 }
+					 } 
 				 }
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator =" + "\n");
-				 newLine();
-				 return false; // error: no "="
+				 if (token.get(current+1).getWord().equals(";")) {
+					 primary();
+					 current++;
+					 return true;
+				 } else {
+					 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
+					 newLine();
+					 return false;
+				 }
 			 }
+		 } else {
+			 System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected operator = 12" + "\n");
+			 newLine();
+			 return false;
+		 }
 	 } 
 	 private boolean expr() throws IOException {
 		 primary();
 		 op();
-		 primary();
-		 return true;
+		 if (token.get(current).getLine() == token.get(current-1).getLine()) {
+			 primary();
+		 	 return true;
+	 	 } else {
+	 		System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected identifier" + "\n");
+	 		 return false;
+	 	 }
 	 }
 	 private boolean primary() {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
@@ -213,7 +217,6 @@ public class Parser {
 			 return true;
 		 } else {
 			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator" + "\n");
-			 newLine();
 			 return false;
 		 }
 	 }
@@ -224,46 +227,80 @@ public class Parser {
 				 current++;
 				 return true; //successfully iterated through print_stmt
 			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
+				 if (token.elementAt(current-1).getLine() == token.elementAt(current-2).getLine()) {
+					 System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected delimiter ;" + "\n");
+				 } else {
+					 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected delimiter ;" + "\n");
+				 }
+				 untilClosed();
 				 return false; //error: no semicolon
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected identifier 3" + "\n");
-			 newLine();
-			 return false; //error: no ID
+			 if (token.get(current).getWord().equals("}")) {
+				 System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected identifier 3" + "\n");
+				 return false;
+			 } else {
+				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected identifier 3" + "\n");
+				 untilClosed();
+			 	return false; //error: no ID
+			 }	
 		 }
 	 }
 	 private boolean while_stmt() throws IOException {
 		 if (condition() == false) {
-			 return false;
+			 untilOpen(); 
 		 }
-		 System.out.println("COOP WORD: " + token.get(current).getWord());
-		 System.out.println("COOP LINE: " + token.get(current).getLine());
-		 System.out.println("COOP LINE: " + token.get(current).getToken());
+		 System.out.println("BEFORE body in while WORD: " + token.get(current).getWord());
+		 System.out.println("BEFORE body in while LINE: " + token.get(current).getLine());
+		 System.out.println("BEFORE body in while Tok: " + token.get(current).getToken());
 		 body();
-		 System.out.println("NOOP WORD: " + token.get(current).getWord());
-		 System.out.println("NOOP LINE: " + token.get(current).getLine());
-		 System.out.println("NOOP LINE: " + token.get(current).getToken());
+		 if (token.get(current).getWord().equals("{")) {
+			 System.out.println("Duff WORD: " + token.get(current).getWord());
+			 System.out.println("Duff LINE: " + token.get(current).getLine());
+			 System.out.println("Duff Tok: " + token.get(current).getToken());
+			 body();
+			 System.out.println("Puff WORD: " + token.get(current).getWord());
+			 System.out.println("Puff LINE: " + token.get(current).getLine());
+			 System.out.println("Puff Tok: " + token.get(current).getToken());
+//			 current++;
+		 }
+		 System.out.println("AFTER body in while WORD: " + token.get(current).getWord());
+		 System.out.println("AFTER body in while LINE: " + token.get(current).getLine());
+		 System.out.println("AFTER body in while Tok: " + token.get(current).getToken());
 		 return true;
 	 }
 	 private boolean if_stmt() throws IOException {
-		 if (condition() == false) {
-			 return false;
-		 }
+		 condition();
 		 body();
 		 return true;
 	 }
 	 private boolean condition() throws IOException {
-		 primary();
-		 if (token.get(current).getWord().equals(">") || token.get(current).getWord().equals("<") || token.get(current).getWord().equals("!")) {
-			 relop();
-			 primary();
-			 return true;
-		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator relop" + "\n");
-			 newLine();
+		 if (primary() == false) {
 			 return false;
+		 } else {
+			 if (relop() == false) {
+				 System.out.println("Wuff WORD: " + token.get(current).getWord());
+				 System.out.println("Wuff LINE: " + token.get(current).getLine());
+				 System.out.println("Wuff Tok: " + token.get(current).getToken());
+				 return false;
+			 } else {
+				 if (primary() == false) {
+					 return false; 
+				 } else {
+					 return true;
+				 }
+			 }
 		 }
+		 
+//		 primary();
+//		 op();
+//		 if (token.get(current).getLine() == token.get(current-1).getLine()) {
+//			 primary();
+//		 	 return true;
+//	 	 } else {
+//	 		System.out.println("Line " + token.elementAt(current-1).getLine() + ":\t" + "expected identifier" + "\n");
+//	 		 return false;
+//	 	 }
 	 }
 	 private boolean relop() throws IOException {
 		 if (token.get(current).getWord().equals(">")) {
@@ -279,12 +316,12 @@ public class Parser {
 				 return true;
 			 } else {
 				 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator =" + "\n");
-				 newLine();
+				 untilOpen();
 				 return false; 
 			 }
 		 } else {
-			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator" + "\n");
-			 newLine();
+			 System.out.println("Line " + token.elementAt(current).getLine() + ":\t" + "expected operator relop" + "\n");
+			 untilOpen();
 			 return false;
 		 }
 	 }

@@ -80,6 +80,7 @@ public class Compiler {
     	}
     	return false;
     }
+    
   	private static boolean isDelimiter(char c) {
   		char [] delimiters = {':', ';', ' ', '}','{', '[',']','(',')',','};
   		for (int x=0; x<delimiters.length; x++) {
