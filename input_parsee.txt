@@ -17,9 +17,9 @@ integer j, i, minusfour  k ;
     i = i - 1;
   }
   this is working :-)
-  SWITCH i {
+  SWITCH i +{
     CASE 1: {
-      print i;
+      print i; 
     }
     DEFAULT value : {
       print o;
@@ -31,3 +31,4 @@ integer j, i, minusfour  k ;
   
   print i;
   print j;
+  :
