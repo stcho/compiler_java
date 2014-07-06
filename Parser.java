@@ -104,6 +104,10 @@ public class Parser {
 			 } else {
 				 stmt_list();
 				 if (token.get(current).getWord().equals("}")) {
+					//No Error if correct end of body
+					 if (current == (token.size()-1)) {
+						 out.close(); System.exit(0);
+					 }
 					 checkEndOfProgram(); 
 					 return true;
 				 } else {
@@ -125,7 +129,13 @@ public class Parser {
 				 checkEndOfProgram(); 
 				 id_list();
 				 return true;
-			 } else {
+			 } else if (token.get(current).getWord().equals(";")){
+				 checkEndOfProgram();
+				 var_section();
+				 return true;
+			 }
+			 else {
+//				 if (current.)
 				 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 untilOpen();
 				 return true; // we have an id but no ',' after it
@@ -373,7 +383,7 @@ public class Parser {
 					 checkEndOfProgram();
 					 return true; 
 				 } else {
-					 out.write("WORD: " + token.get(current).getWord());
+//					 out.write("WORD: " + token.get(current).getWord());
 					 case_list();
 					 return true;
 				 }

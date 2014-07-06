@@ -22,7 +22,7 @@ public class Compiler {
     	List<String> array = new ArrayList<String>();	//ArrayList to store the split strings temporarily
     	
     	for (int i = 0; i<line.length(); i++){
-    		if (!isDelimiter(lineCharArray[i]) && !isOperator(lineCharArray[i]) && !isQuotes(lineCharArray[i])){
+    		if (!isDelimiter(lineCharArray[i]) && !isOperator(lineCharArray[i]) && !isQuotes(lineCharArray[i]) && !Character.isWhitespace(lineCharArray[i])){
     			temp += lineCharArray[i];
     		} else {
     			if (!temp.isEmpty()) {

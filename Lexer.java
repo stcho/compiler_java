@@ -15,7 +15,7 @@ public class Lexer {
 	  String binRegEx = "[0][b]([0]|[1])+";
 	  String stringRegEx = "[\\\"](.)*[\\\"]"; 
 	  String charRegEx = "[\\\']((.)|([\\\\][\\\']))[\\\']";
-	  String idRegEx = "(([A-Z]|[a-z])+([A-Z]|[a-z]|[0-9])*)|[_$]([A-Z]|[a-z]|[0-9])+";
+	  String idRegEx = "(([A-Z]|[a-z])+([A-Z]|[a-z]|[0-9])*)|[_$]([A-Z]|[a-z]|[0-9])+|([A-Z]|[a-z]|[0-9])+[_$]+([A-Z]|[a-z]|[0-9])+";
 	  
     // 5. RETURN THE TOKEN FOR THE string received as parameter; 
 	  
