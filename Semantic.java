@@ -6,8 +6,8 @@ import java.util.Vector;
 
 public class Semantic {
 	
-	Hashtable<String, Vector> st = new Hashtable <String, Vector>();
-	Stack registry = new Stack();
+	public Hashtable<String, Vector> st = new Hashtable <String, Vector>();
+	Stack<Vector> registry = new Stack<Vector>();
 	String scope;
 	String[][][] cube = new String[3][9][3];
 	
@@ -45,7 +45,19 @@ public class Semantic {
 	
 	
 	public void insertSymbol(String id, String type, String scope) {
+		Vector<String> temp = new Vector<String>();
+		temp.addElement(type);
+		temp.addElement(scope);
+		st.put(id, temp);
+		System.out.println("id: " + id + " \t temp: " + st.get(id));
 		
+//		if (st.contains(id)) {
+//			st.put(id, temp);
+//			System.out.println("id: " + id + "temp: " + st.get(id));
+//		 } else {
+//			 //semantic error
+//			 System.out.println("Line " + line + ": " + "duplicate variable " + id + "\n\n");
+//		 }
 	}
 	
 	public void storeID(String id) {

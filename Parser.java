@@ -9,6 +9,8 @@ public class Parser {
 	 Vector<Token> token;
 	 int current = 0;
 	 Writer out;
+	 String type;
+	 Semantic semantic = new Semantic();
 	 
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
 		 this.token = tokens;
@@ -71,7 +73,7 @@ public class Parser {
 	 
 	 private boolean program() throws FileNotFoundException, IOException{		
 		 var_section();
-		 body();
+		 body();		 
 		 return true;
 	 }
 	 
@@ -124,6 +126,14 @@ public class Parser {
 	 
 	 private boolean id_list() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
+			 //SEMANTIC ERROR CHECK
+			 if (!semantic.st.containsKey(token.get(current).getWord())) {
+				 semantic.insertSymbol(token.get(current).getWord(), type, "global");
+			 } else {
+				 //semantic error
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "duplicate variable " + token.elementAt(current).getWord() + "\n\n");
+			 }
+			 //IDs inserted into symbol table 
 			 checkEndOfProgram(); 
 			 if (token.get(current).getWord().equals(",")) {
 				 checkEndOfProgram(); 
@@ -135,7 +145,6 @@ public class Parser {
 				 return true;
 			 }
 			 else {
-//				 if (current.)
 				 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
 				 untilOpen();
 				 return true; // we have an id but no ',' after it
@@ -183,6 +192,15 @@ public class Parser {
 				 return true;
 			 }
 		 } else if (token.get(current).getToken().equals("IDENTIFIER")) {
+			//SEMANTIC ERROR CHECK
+			 if (!semantic.st.containsKey(token.get(current).getWord())) {
+				//semantic error: Line <line>: variable <variable> not found
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + "not found \n\n");
+			 } else {
+				 semantic.registry.push(semantic.st.get(token.get(current).getWord()));
+			 }
+			 //IDs inserted into symbol table 
+			 
 			 current++;
 			 assign_stmt();
 			 return true;
@@ -471,9 +489,11 @@ public class Parser {
 	 
 	 private boolean type() throws IOException {
 		 if (token.get(current).getWord().equals("integer")) {
+			 type = "integer";
 			 current++;
 			 return true;
 		 } else if (token.get(current).getWord().equals("boolean")) {
+			 type = "boolean";
 			 current++;
 			 return true;
 		 } else {
