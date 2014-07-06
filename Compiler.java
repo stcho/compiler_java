@@ -109,7 +109,7 @@ public class Compiler {
       while (line != null) { 
         String[] strings = split (line); //the split method
         for (String string : strings) {
-          String token = Lexer_1203982307.lexer(string);
+          String token = Lexer.lexer(string);
           tokens.add(new Token(string, token, lineNumber));
           if (token.equals("ERROR")) {
             totalLexicalErrors++;

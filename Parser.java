@@ -13,7 +13,7 @@ public class Parser {
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
 		 this.token = tokens;
 		 this.out = out_args;
-		// recursive-descendant parser
+		 // predictive-recursive-descendant parser start
 		 program();
 	 } 
 	 

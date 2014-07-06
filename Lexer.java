@@ -2,7 +2,7 @@ package cse340;
 
 import java.util.regex.Matcher;
 
-public class Lexer_1203982307 {
+public class Lexer {
  //Delete for
   private final static String[] keywords = {"if", "else", "while", "switch", "case", "return", "int", "float", "void", "char", "string", "boolean", "true", "false", "print", "WHILE", "IF", "SWITCH", "CASE", "DEFAULT"};
  
