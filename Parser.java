@@ -132,7 +132,7 @@ public class Parser {
 				 semantic.insertSymbol(token.get(current).getWord(), type, "global");
 			 } else {
 				 //semantic error
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "duplicate variable " + token.elementAt(current).getWord() + "\n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "duplicate variable " + token.elementAt(current).getWord() + "\n\n");
 			 }
 			 //IDs inserted into symbol table 
 			 checkEndOfProgram(); 
@@ -196,9 +196,8 @@ public class Parser {
 			 //Semantic Error Check
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
-//				 System.out.println("StackInAssign: Word " + token.get(current).getWord() +" TYPE " + semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
 			 //
@@ -222,7 +221,7 @@ public class Parser {
 				 if(temp2.equals("") || temp1.equals("")) {
 					 return false;
 				 } else {
-					 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+					 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
 					 return false; 
 				 }
 			 }
@@ -297,7 +296,7 @@ public class Parser {
 				 temp1 = semantic.registry.pop();
 			 }
 			 if((temp2.equals("") || temp1.equals("")) && !temp1.equals(temp2) && !temp1.equals("error")) {
-				 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+				 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
 			 } else {
 				 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
 				 semantic.registry.push(result); 
@@ -315,7 +314,7 @@ public class Parser {
 			 //SEMANTIC ERROR CHECK
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
@@ -357,7 +356,7 @@ public class Parser {
 			//SEMANTIC ERROR CHECK
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
@@ -395,7 +394,7 @@ public class Parser {
 		 String temp1 = semantic.registry.pop();
 		 if (temp1.equals("boolean")) {} else {
 			//semantic error Line <line>: type mismatch
-			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
+			 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
 		 }
 		 /////////////
 		 body();
@@ -413,7 +412,7 @@ public class Parser {
 		 String temp1 = semantic.registry.pop();
 		 if (temp1.equals("boolean")) {} else {
 			//semantic error Line <line>: type mismatch
-			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
+			 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
 		 }
 		 /////////////
 		 body();
@@ -443,16 +442,11 @@ public class Parser {
 						 temp1 = semantic.registry.pop();
 					 }
 					 if((temp2.equals("") || temp1.equals("")) && !temp1.equals(temp2) && !temp1.equals("error")) {
-						 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+						 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
 					 } else {
 						 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
 						 semantic.registry.push(result); 
 					 }
-//					 String temp2 = semantic.registry.pop();
-//					 String temp1 = semantic.registry.pop();
-//					 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
-//					 semantic.registry.push(result);
-					 ////////////////////////
 					 return true;
 				 }
 			 }
@@ -491,19 +485,18 @@ public class Parser {
 			//SEMANTIC ERROR CHECK
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+				 out.write("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
 			 String temp1 = new String();
-			 if (semantic.registry.empty()) {
+			 if (!semantic.registry.empty()) {
 				 temp1 = semantic.registry.pop();
 				 if (temp1.equals("integer")){} else {
-					 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
+					 out.write("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
 				 }
-			 } else {
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
-			 }
+			 } 
 			 //
 			 current++;
 			 if (token.get(current).getWord().equals("{")) {
@@ -513,7 +506,6 @@ public class Parser {
 					 checkEndOfProgram();
 					 return true; 
 				 } else {
-//					 out.write("WORD: " + token.get(current).getWord());
 					 case_list();
 					 return true;
 				 }
