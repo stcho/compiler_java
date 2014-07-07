@@ -193,7 +193,7 @@ public class Parser {
 				 return true;
 			 }
 		 } else if (token.get(current).getToken().equals("IDENTIFIER")) {
-			 //SEMANTIC ERROR CHECK
+			 //Semantic Error Check
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
 				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
@@ -206,19 +206,26 @@ public class Parser {
 			 current++;
 			 assign_stmt();
 			 
-			 //pop 2, use cube, if(!ok) error
-			 
-				 String temp2 = semantic.registry.pop();
-//				 System.out.println("WOOF2: " + temp2);
-				 String temp1 = semantic.registry.pop();
-//				 System.out.println("WOOF1: " + temp1);
-				 if (temp1.equals(temp2) && !temp1.equals("error")) {
-					 return true;
-				 } else {
-					//semantic error Line <line>: type mismatch
-					 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+			 //Semantic error check: pop 2, use cube, if(!ok) error
+			 String temp2 = new String();
+			 String temp1 = new String();
+			 if (!semantic.registry.empty()) {
+				 temp2 = semantic.registry.pop();
+			 }			 
+			 if (!semantic.registry.empty()) {
+				 temp1 = semantic.registry.pop();
+			 }
+			 if (temp1.equals(temp2) && !temp1.equals("error")) {
+				 return true;
+			 } else {
+			 //semantic error Line <line>: type mismatch
+				 if(temp2.equals("") || temp1.equals("")) {
 					 return false;
+				 } else {
+					 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+					 return false; 
 				 }
+			 }
 				 
 		 } else {
 			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n\n");
@@ -281,10 +288,20 @@ public class Parser {
 		 if (token.get(current).getLine() == token.get(current-1).getLine()) {
 			 primary();
 			 //Semantic push to stack
-			 String temp2 = semantic.registry.pop();
-			 String temp1 = semantic.registry.pop();
-			 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
-			 semantic.registry.push(result);
+			 String temp2 = new String();
+			 String temp1 = new String();
+			 if (!semantic.registry.empty()) {
+				 temp2 = semantic.registry.pop();
+			 }			 
+			 if (!semantic.registry.empty()) {
+				 temp1 = semantic.registry.pop();
+			 }
+			 if((temp2.equals("") || temp1.equals("")) && !temp1.equals(temp2) && !temp1.equals("error")) {
+				 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+			 } else {
+				 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
+				 semantic.registry.push(result); 
+			 }
 			 ////////////////////////
 		 	 return true;
 	 	 } else {
@@ -337,6 +354,14 @@ public class Parser {
 	 
 	 private boolean print_stmt() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
+			//SEMANTIC ERROR CHECK
+			 if (!semantic.st.containsKey(token.get(current).getWord())) {
+				//semantic error: Line <line>: variable <variable> not found
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+			 } else {
+				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+			 }
+			 //
 			 current++;
 			 if (token.get(current).getWord().equals(";")) {
 				 checkEndOfProgram();
@@ -409,10 +434,24 @@ public class Parser {
 					 return false; 
 				 } else {
 					//Semantic push to stack
-					 String temp2 = semantic.registry.pop();
-					 String temp1 = semantic.registry.pop();
-					 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
-					 semantic.registry.push(result);
+					 String temp2 = new String();
+					 String temp1 = new String();
+					 if (!semantic.registry.empty()) {
+						 temp2 = semantic.registry.pop();
+					 }			 
+					 if (!semantic.registry.empty()) {
+						 temp1 = semantic.registry.pop();
+					 }
+					 if((temp2.equals("") || temp1.equals("")) && !temp1.equals(temp2) && !temp1.equals("error")) {
+						 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+					 } else {
+						 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
+						 semantic.registry.push(result); 
+					 }
+//					 String temp2 = semantic.registry.pop();
+//					 String temp1 = semantic.registry.pop();
+//					 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
+//					 semantic.registry.push(result);
 					 ////////////////////////
 					 return true;
 				 }
@@ -449,6 +488,23 @@ public class Parser {
 	 
 	 private boolean switch_stmt() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")){
+			//SEMANTIC ERROR CHECK
+			 if (!semantic.st.containsKey(token.get(current).getWord())) {
+				//semantic error: Line <line>: variable <variable> not found
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+			 } else {
+				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+			 }
+			 String temp1 = new String();
+			 if (semantic.registry.empty()) {
+				 temp1 = semantic.registry.pop();
+				 if (temp1.equals("integer")){} else {
+					 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
+				 }
+			 } else {
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
+			 }
+			 //
 			 current++;
 			 if (token.get(current).getWord().equals("{")) {
 				 current++;
