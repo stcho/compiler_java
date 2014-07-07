@@ -49,7 +49,8 @@ public class Semantic {
 		temp.addElement(type);
 		temp.addElement(scope);
 		st.put(id, temp);
-		System.out.println("id: " + id + " \t temp: " + st.get(id));
+
+		//		System.out.println("id: " + id + " \t temp: " + st.get(id));
 		
 //		if (st.contains(id)) {
 //			st.put(id, temp);

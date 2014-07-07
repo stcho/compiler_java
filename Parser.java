@@ -10,6 +10,7 @@ public class Parser {
 	 int current = 0;
 	 Writer out;
 	 String type;
+	 int relop;
 	 Semantic semantic = new Semantic();
 	 
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
@@ -197,7 +198,7 @@ public class Parser {
 				//semantic error: Line <line>: variable <variable> not found
 				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
-				 System.out.println("StackInAssign: Word " + token.get(current).getWord() +" TYPE " + semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+//				 System.out.println("StackInAssign: Word " + token.get(current).getWord() +" TYPE " + semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
 			 //
@@ -208,9 +209,9 @@ public class Parser {
 			 //pop 2, use cube, if(!ok) error
 			 
 				 String temp2 = semantic.registry.pop();
-				 System.out.println("WOOF2: " + temp2);
+//				 System.out.println("WOOF2: " + temp2);
 				 String temp1 = semantic.registry.pop();
-				 System.out.println("WOOF1: " + temp1);
+//				 System.out.println("WOOF1: " + temp1);
 				 if (temp1.equals(temp2) && !temp1.equals("error")) {
 					 return true;
 				 } else {
@@ -281,9 +282,7 @@ public class Parser {
 			 primary();
 			 //Semantic push to stack
 			 String temp2 = semantic.registry.pop();
-			 System.out.println("MOO2: " + temp2);
 			 String temp1 = semantic.registry.pop();
-			 System.out.println("MOO1: " + temp1);
 			 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
 			 semantic.registry.push(result);
 			 ////////////////////////
@@ -367,6 +366,13 @@ public class Parser {
 		 if (condition() == false) {
 			 untilOpen(); 
 		 }
+		//Semantic check pop 1, check if bool otherwise Line <line>: boolean expression expected
+		 String temp1 = semantic.registry.pop();
+		 if (temp1.equals("boolean")) {} else {
+			//semantic error Line <line>: type mismatch
+			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
+		 }
+		 /////////////
 		 body();
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
@@ -378,6 +384,13 @@ public class Parser {
 		 if (condition() == false) {
 			 untilOpen(); 
 		 }
+		 //Semantic check pop 1, check if bool otherwise Line <line>: boolean expression expected
+		 String temp1 = semantic.registry.pop();
+		 if (temp1.equals("boolean")) {} else {
+			//semantic error Line <line>: type mismatch
+			 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
+		 }
+		 /////////////
 		 body();
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
@@ -395,6 +408,12 @@ public class Parser {
 				 if (primary() == false) {
 					 return false; 
 				 } else {
+					//Semantic push to stack
+					 String temp2 = semantic.registry.pop();
+					 String temp1 = semantic.registry.pop();
+					 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
+					 semantic.registry.push(result);
+					 ////////////////////////
 					 return true;
 				 }
 			 }
@@ -403,14 +422,17 @@ public class Parser {
 	 
 	 private boolean relop() throws IOException {
 		 if (token.get(current).getWord().equals(">")) {
+			 relop = 5;
 			 current++;
 			 return true; 
 		 } else if (token.get(current).getWord().equals("<")){
+			 relop = 5;
 			 current++;
 			 return true;
 		 } else if (token.get(current).getWord().equals("!")){
 			 current++;
 			 if (token.get(current).getWord().equals("=")) {
+				 relop = 5;
 				 current++;
 				 return true;
 			 } else {
