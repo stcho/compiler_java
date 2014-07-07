@@ -7,7 +7,7 @@ import java.util.Vector;
 public class Semantic {
 	
 	public Hashtable<String, Vector> st = new Hashtable <String, Vector>();
-	Stack<Vector> registry = new Stack<Vector>();
+	Stack<String> registry = new Stack<String>();
 	String scope;
 	String[][][] cube = new String[3][9][3];
 	
@@ -58,6 +58,17 @@ public class Semantic {
 //			 //semantic error
 //			 System.out.println("Line " + line + ": " + "duplicate variable " + id + "\n\n");
 //		 }
+	}
+	
+	public int checkType(String type) {
+		if (type.equals("integer")) {
+			 return 0;    
+		}
+		else if (type.equals("boolean")) {
+			 return 1;    
+		} else {
+			 return 2;    
+		}
 	}
 	
 	public void storeID(String id) {

@@ -126,7 +126,7 @@ public class Parser {
 	 
 	 private boolean id_list() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
-			 //SEMANTIC ERROR CHECK
+			 //SEMANTIC ERROR HANDLING
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				 semantic.insertSymbol(token.get(current).getWord(), type, "global");
 			 } else {
@@ -192,18 +192,33 @@ public class Parser {
 				 return true;
 			 }
 		 } else if (token.get(current).getToken().equals("IDENTIFIER")) {
-			//SEMANTIC ERROR CHECK
+			 //SEMANTIC ERROR CHECK
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				//semantic error: Line <line>: variable <variable> not found
-				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + "not found \n\n");
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
-				 semantic.registry.push(semantic.st.get(token.get(current).getWord()));
+				 System.out.println("StackInAssign: Word " + token.get(current).getWord() +" TYPE " + semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
-			 //IDs inserted into symbol table 
+			 //
 			 
 			 current++;
 			 assign_stmt();
-			 return true;
+			 
+			 //pop 2, use cube, if(!ok) error
+			 
+				 String temp2 = semantic.registry.pop();
+				 System.out.println("WOOF2: " + temp2);
+				 String temp1 = semantic.registry.pop();
+				 System.out.println("WOOF1: " + temp1);
+				 if (temp1.equals(temp2) && !temp1.equals("error")) {
+					 return true;
+				 } else {
+					//semantic error Line <line>: type mismatch
+					 System.out.println("Line " + token.elementAt(current-1).getLine() + ": "+ "type mismatch \n\n");
+					 return false;
+				 }
+				 
 		 } else {
 			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected identifier" + "\n\n");
 			 newLine();
@@ -259,10 +274,19 @@ public class Parser {
 	 }
 	 
 	 private boolean expr() throws IOException {
+		 int op;
 		 primary();
-		 op();
+		 op = op();
 		 if (token.get(current).getLine() == token.get(current-1).getLine()) {
 			 primary();
+			 //Semantic push to stack
+			 String temp2 = semantic.registry.pop();
+			 System.out.println("MOO2: " + temp2);
+			 String temp1 = semantic.registry.pop();
+			 System.out.println("MOO1: " + temp1);
+			 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
+			 semantic.registry.push(result);
+			 ////////////////////////
 		 	 return true;
 	 	 } else {
 	 		out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n\n");
@@ -272,9 +296,19 @@ public class Parser {
 	 
 	 private boolean primary() throws IOException {
 		 if (token.get(current).getToken().equals("IDENTIFIER")) {
+			 //SEMANTIC ERROR CHECK
+			 if (!semantic.st.containsKey(token.get(current).getWord())) {
+				//semantic error: Line <line>: variable <variable> not found
+				 System.out.println("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
+			 } else {
+				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+			 }
+			 //
 			 current++;
 			 return true;
 		 } else if (token.get(current).getToken().equals("INTEGER")) {			 
+			 //Push into stack 
+			 semantic.registry.push("integer");
 			 current++;
 			 return true;
 		 } else {
@@ -283,22 +317,22 @@ public class Parser {
 		 }
 	 }
 	 
-	 private boolean op() throws IOException {
+	 private int op() throws IOException {
 		 if (token.get(current).getWord().equals("+")) {
 			 current++;
-			 return true;
+			 return 0;
 		 } else if (token.get(current).getWord().equals("-")) {
 			 current++;
-			 return true;
+			 return 0;
 		 } else if (token.get(current).getWord().equals("*")) {
 			 current++;
-			 return true;
+			 return 0;
 		 } else if (token.get(current).getWord().equals("/")) {
 			 current++;
-			 return true;
+			 return 0;
 		 } else {
 			 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected operator" + "\n\n");
-			 return false;
+			 return 2;
 		 }
 	 }
 	 
