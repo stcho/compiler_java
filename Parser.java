@@ -3,6 +3,8 @@ package cse340;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Stack;
 import java.util.Vector; 
 
 public class Parser { 
@@ -19,6 +21,8 @@ public class Parser {
 	 String assemblyCode = new String();
 	 String currentLabel;
 	 String printLabels = new String();
+	 Stack numTemp = new Stack();
+	 ArrayList labelTemp = new ArrayList();
 	 
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
 		 this.token = tokens;
@@ -58,7 +62,7 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()+1) + ": " + "expected delimiter }" + "\n\n");
-			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 			 System.exit(0); 
 		 }
 	 }
@@ -67,7 +71,7 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter {" + "\n\n");
-			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 			 System.exit(0); 
 		 }
 	 }
@@ -76,7 +80,7 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter :" + "\n\n");
-			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 			 System.exit(0); 
 		 }
 	 }
@@ -119,7 +123,7 @@ public class Parser {
 				 if (token.get(current).getWord().equals("}")) {
 					//No Error if correct end of body
 					 if (current == (token.size()-1)) {
-						 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+						 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 						 System.exit(0);
 					 }
 					 checkEndOfProgram(); 
@@ -141,7 +145,7 @@ public class Parser {
 			 //SEMANTIC ERROR HANDLING
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				 semantic.insertSymbol(token.get(current).getWord(), type, "global");
-				 System.out.println(token.get(current).getWord() + ", " + type);
+				 out.write(token.get(current).getWord() + ", " + type + "\n");
 			 } else {
 				 //semantic error
 				 out.write("Line " + token.elementAt(current).getLine() + ": " + "duplicate variable " + token.elementAt(current).getWord() + "\n\n");
@@ -253,12 +257,12 @@ public class Parser {
 				 current++; 
 			 } else {
 				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected identifier" + "\n\n");
-				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 				 System.exit(0); 
 			 }
 			 if (current == (token.size()-1)) {
 				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter ;" + "\n\n");
-				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 				 System.exit(0); 
 			 }
 			 
@@ -451,7 +455,7 @@ public class Parser {
 		 body();
 		 //Generating intermediate code output: JMP
 		 pc++; addString("JMP " + a_new_label() + ", 0");
-		 addLabel(st_a_new_label(), pc);
+		 pc++; numTemp.push(pc); labelTemp.add(st_a_new_label());
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
 		 }
@@ -481,7 +485,7 @@ public class Parser {
 			 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
 		 }
 		//Generating intermediate code output: JMC
-		 pc++; addString("JMC " + a_new_label() + ", false"); System.out.println(currentLabel + ", " + pc);
+		 pc++; addString("JMC " + a_new_label() + ", false"); out.write(currentLabel + ", " + pc);
 		 body();
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
@@ -493,7 +497,7 @@ public class Parser {
 		 if (primary() == false) {
 			 return false;
 		 } else {
-			 addLabel(st_a_new_label(), pc);
+			 numTemp.push(pc); labelTemp.add(st_a_new_label());
 			 if (relop() == false) {
 				 return false;
 			 } else {
@@ -603,7 +607,7 @@ public class Parser {
 					 current++;
 				 } else {
 					 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected value" + "\n\n");
-					 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0");  System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+					 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0");  addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 					 System.exit(0);  //end of initial body
 				 }
 				 CASE();
@@ -661,7 +665,7 @@ public class Parser {
 				if (current != (token.size()-1)) {
 					return false; //error: expecting ":" 
 				} else {
-					pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+					pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); addLabel(); out.write(printLabels + "@" + assemblyCode); out.close(); 
 					System.exit(0);  //end of initial body
 				}
 				return false;
@@ -689,8 +693,12 @@ public class Parser {
 		 assemblyCode = assemblyCode + "\n" + s;
 	 }
 	 
-	 private void addLabel(String s, int num){
-		 s = s + ", " + num +"\n";
+	 private void addLabel(){
+		 //last element of numTemp where 
+		 for(int i =0;labelTemp.size()>i; i++){
+		 String s = (String) labelTemp.get(i);
+		 s = s + ", " + numTemp.pop() +"\n";
 		 printLabels = printLabels + s;
+		 }
 	 }
 }
