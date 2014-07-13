@@ -12,6 +12,13 @@ public class Parser {
 	 String type;
 	 int relop;
 	 Semantic semantic = new Semantic();
+	 int operator; 
+	 int pc;
+	 int newLabel = 1;
+	 int stNewLabel = 1;
+	 String assemblyCode = new String();
+	 String currentLabel;
+	 String printLabels = new String();
 	 
 	 public Parser (Vector<Token> tokens, Writer out_args) throws IOException { 
 		 this.token = tokens;
@@ -51,7 +58,8 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()+1) + ": " + "expected delimiter }" + "\n\n");
-			 out.close(); System.exit(0); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 System.exit(0); 
 		 }
 	 }
 	 private void checkEndOfProgramOpen() throws IOException{
@@ -59,7 +67,8 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter {" + "\n\n");
-			 out.close(); System.exit(0); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 System.exit(0); 
 		 }
 	 }
 	 private void checkEndOfProgramOther() throws IOException{
@@ -67,7 +76,8 @@ public class Parser {
 			 current++; 
 		 } else {
 			 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter :" + "\n\n");
-			 out.close(); System.exit(0); 
+			 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+			 System.exit(0); 
 		 }
 	 }
 	 
@@ -109,7 +119,8 @@ public class Parser {
 				 if (token.get(current).getWord().equals("}")) {
 					//No Error if correct end of body
 					 if (current == (token.size()-1)) {
-						 out.close(); System.exit(0);
+						 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+						 System.exit(0);
 					 }
 					 checkEndOfProgram(); 
 					 return true;
@@ -130,6 +141,7 @@ public class Parser {
 			 //SEMANTIC ERROR HANDLING
 			 if (!semantic.st.containsKey(token.get(current).getWord())) {
 				 semantic.insertSymbol(token.get(current).getWord(), type, "global");
+				 System.out.println(token.get(current).getWord() + ", " + type);
 			 } else {
 				 //semantic error
 				 out.write("Line " + token.elementAt(current).getLine() + ": " + "duplicate variable " + token.elementAt(current).getWord() + "\n\n");
@@ -200,7 +212,7 @@ public class Parser {
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
 			 }
-			 //
+			 String var = token.get(current).getWord();
 			 
 			 current++;
 			 assign_stmt();
@@ -215,6 +227,8 @@ public class Parser {
 				 temp1 = semantic.registry.pop();
 			 }
 			 if (temp1.equals(temp2) && !temp1.equals("error")) {
+				//Generating intermediate code output: STO
+				 pc++; addString("STO " + var + ", 0");
 				 return true;
 			 } else {
 			 //semantic error Line <line>: type mismatch
@@ -239,12 +253,35 @@ public class Parser {
 				 current++; 
 			 } else {
 				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected identifier" + "\n\n");
-				 out.close(); System.exit(0); 
+				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+				 System.exit(0); 
 			 }
 			 if (current == (token.size()-1)) {
 				 out.write("Line " + (token.elementAt(current).getLine()) + ": " + "expected delimiter ;" + "\n\n");
-				 out.close(); System.exit(0); 
+				 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+				 System.exit(0); 
 			 }
+			 
+			 if(token.get(current).getWord().equals("true") || token.get(current).getWord().equals("false")) {
+					//Push into stack 
+					 semantic.registry.push("boolean");
+					//Generating intermediate code output: LOD
+					 pc++; addString("LIT " + token.get(current).getWord() + ", 0");
+					 current++;
+					 if (token.get(current).getWord().equals(";")) {
+						 checkEndOfProgram();
+						 return true;
+					 } else {
+						 if (token.elementAt(current-1).getLine() == token.elementAt(current-2).getLine()) {
+							 out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected delimiter ;" + "\n\n");
+						 } else {
+							 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected delimiter ;" + "\n\n");
+						 }
+						 newLine();
+						 return false;
+					 }
+				 }
+			 
 			 if (((token.get(current).getToken().equals("IDENTIFIER") || token.get(current).getToken().equals("INTEGER"))) && (token.get(current+1).getWord().equals("+") || token.get(current+1).getWord().equals("-") || token.get(current+1).getWord().equals("*") || token.get(current+1).getWord().equals("/"))) {
 				 if (expr() == false) {
 					 return false;
@@ -301,7 +338,8 @@ public class Parser {
 				 String result = semantic.cube[semantic.checkType(temp1)][op][semantic.checkType(temp2)];
 				 semantic.registry.push(result); 
 			 }
-			 ////////////////////////
+			//Generating intermediate code output: OPR
+			 pc++; addString("OPR " + operator + ", 0");
 		 	 return true;
 	 	 } else {
 	 		out.write("Line " + token.elementAt(current-1).getLine() + ": " + "expected identifier" + "\n\n");
@@ -317,6 +355,8 @@ public class Parser {
 				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+				//Generating intermediate code output: LOD
+				 pc++; addString("LOD " + token.get(current).getWord() + ", 0");
 			 }
 			 //
 			 current++;
@@ -324,6 +364,8 @@ public class Parser {
 		 } else if (token.get(current).getToken().equals("INTEGER")) {			 
 			 //Push into stack 
 			 semantic.registry.push("integer");
+			//Generating intermediate code output: LOD
+			 pc++; addString("LIT " + token.get(current).getWord() + ", 0");
 			 current++;
 			 return true;
 		 } else {
@@ -334,15 +376,19 @@ public class Parser {
 	 
 	 private int op() throws IOException {
 		 if (token.get(current).getWord().equals("+")) {
+			 operator = 2;
 			 current++;
 			 return 0;
 		 } else if (token.get(current).getWord().equals("-")) {
+			 operator = 3;
 			 current++;
 			 return 0;
 		 } else if (token.get(current).getWord().equals("*")) {
+			 operator = 4;
 			 current++;
 			 return 0;
 		 } else if (token.get(current).getWord().equals("/")) {
+			 operator = 5;
 			 current++;
 			 return 0;
 		 } else {
@@ -359,10 +405,14 @@ public class Parser {
 				 out.write("Line " + token.elementAt(current).getLine() + ": " + "variable " + token.elementAt(current).getWord() + " not found \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+				//Generating intermediate code output: LOD
+				 pc++; addString("LOD " + token.get(current).getWord() + ", 0");
 			 }
 			 //
 			 current++;
 			 if (token.get(current).getWord().equals(";")) {
+				//Generating intermediate code output: OPR
+				 pc++; addString("OPR 21, 0");
 				 checkEndOfProgram();
 				 return true; //successfully iterated through print_stmt
 			 } else {
@@ -395,13 +445,29 @@ public class Parser {
 		 if (temp1.equals("boolean")) {} else {
 			//semantic error Line <line>: type mismatch
 			 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
-		 }
-		 /////////////
+		 } 
+		 //Generating intermediate code output: JMC
+		 pc++; addString("JMC " + a_new_label() + ", false");
 		 body();
+		 //Generating intermediate code output: JMP
+		 pc++; addString("JMP " + a_new_label() + ", 0");
+		 addLabel(st_a_new_label(), pc);
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
 		 }
 		 return true;
+	 }
+	 
+	 private String a_new_label() {
+		 String t = "#e" + newLabel;
+		 newLabel++;
+		 return t;
+	 }
+	 
+	 private String st_a_new_label() {
+		 String t = "#e" + stNewLabel;
+		 stNewLabel++;
+		 return t;
 	 }
 	 
 	 private boolean if_stmt() throws IOException {
@@ -414,7 +480,8 @@ public class Parser {
 			//semantic error Line <line>: type mismatch
 			 out.write("Line " + token.elementAt(current-1).getLine() + ": "+ "boolean expression expected \n\n");
 		 }
-		 /////////////
+		//Generating intermediate code output: JMC
+		 pc++; addString("JMC " + a_new_label() + ", false"); System.out.println(currentLabel + ", " + pc);
 		 body();
 		 if (token.get(current).getWord().equals("{")) {
 			 body();
@@ -426,6 +493,7 @@ public class Parser {
 		 if (primary() == false) {
 			 return false;
 		 } else {
+			 addLabel(st_a_new_label(), pc);
 			 if (relop() == false) {
 				 return false;
 			 } else {
@@ -447,6 +515,8 @@ public class Parser {
 						 String result = semantic.cube[semantic.checkType(temp1)][relop][semantic.checkType(temp2)];
 						 semantic.registry.push(result); 
 					 }
+					//Generating intermediate code output: OPR
+					 pc++; addString("OPR " + operator + ", 0");
 					 return true;
 				 }
 			 }
@@ -455,16 +525,19 @@ public class Parser {
 	 
 	 private boolean relop() throws IOException {
 		 if (token.get(current).getWord().equals(">")) {
+			 operator = 11;
 			 relop = 5;
 			 current++;
 			 return true; 
 		 } else if (token.get(current).getWord().equals("<")){
+			 operator = 12;
 			 relop = 5;
 			 current++;
 			 return true;
 		 } else if (token.get(current).getWord().equals("!")){
 			 current++;
 			 if (token.get(current).getWord().equals("=")) {
+				 operator = 16;
 				 relop = 5;
 				 current++;
 				 return true;
@@ -489,6 +562,8 @@ public class Parser {
 				 out.write("Line " + token.elementAt(current).getLine() + ": " + "incompatible types: boolean cannot be converted to integer \n\n");
 			 } else {
 				 semantic.registry.push(semantic.st.get(token.get(current).getWord()).elementAt(0).toString());
+				//Generating intermediate code output: LOD
+				 pc++; addString("LOD " + token.get(current).getWord() + ", 0");
 			 }
 			 String temp1 = new String();
 			 if (!semantic.registry.empty()) {
@@ -528,7 +603,8 @@ public class Parser {
 					 current++;
 				 } else {
 					 out.write("Line " + token.elementAt(current).getLine() + ": " + "expected value" + "\n\n");
-					 out.close(); System.exit(0);  //end of initial body
+					 pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0");  System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+					 System.exit(0);  //end of initial body
 				 }
 				 CASE();
 				 if (token.get(current).getWord().equals("{")) {
@@ -585,7 +661,8 @@ public class Parser {
 				if (current != (token.size()-1)) {
 					return false; //error: expecting ":" 
 				} else {
-					 out.close(); System.exit(0);  //end of initial body
+					pc++; addString("OPR 1, 0"); pc++; addString("OPR 0, 0"); System.out.println(printLabels + "@" + assemblyCode); out.close(); 
+					System.exit(0);  //end of initial body
 				}
 				return false;
 		 }
@@ -606,5 +683,14 @@ public class Parser {
 			 newLine();
 			 return false;
 		 }
+	 }
+	 
+	 private void addString(String s){
+		 assemblyCode = assemblyCode + "\n" + s;
+	 }
+	 
+	 private void addLabel(String s, int num){
+		 s = s + ", " + num +"\n";
+		 printLabels = printLabels + s;
 	 }
 }

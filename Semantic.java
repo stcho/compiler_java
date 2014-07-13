@@ -3,6 +3,9 @@ package cse340;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.Iterator;
+import java.util.Set;
+
 
 public class Semantic {
 	
@@ -49,16 +52,6 @@ public class Semantic {
 		temp.addElement(type);
 		temp.addElement(scope);
 		st.put(id, temp);
-
-		//		System.out.println("id: " + id + " \t temp: " + st.get(id));
-		
-//		if (st.contains(id)) {
-//			st.put(id, temp);
-//			System.out.println("id: " + id + "temp: " + st.get(id));
-//		 } else {
-//			 //semantic error
-//			 System.out.println("Line " + line + ": " + "duplicate variable " + id + "\n\n");
-//		 }
 	}
 	
 	public int checkType(String type) {
